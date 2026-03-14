@@ -19,7 +19,6 @@ def keep_alive():
     t = Thread(target=run)
     t.start()
 
-# Бот берет токен из переменной окружения Render
 TOKEN = os.environ.get("BOT_TOKEN")
 
 class MyBot(commands.Bot):
@@ -37,29 +36,27 @@ class PollView(discord.ui.View):
     def __init__(self, date):
         super().__init__(timeout=None)
         self.date = date
-        self.going, self.not_going, self.maybe = {}, {}, {}
+        self.going, self.not_going = {}, {}
 
     def make_content(self):
         msg = f"📅 **Событие назначено на: {self.date}**\n\n"
         msg += f"✅ **Приду ({len(self.going)}):**\n" + ("\n".join(self.going.values()) if self.going else "—") + "\n\n"
-        msg += f"❌ **Не приду ({len(self.not_going)}):**\n" + ("\n".join(self.not_going.values()) if self.not_going else "—") + "\n\n"
-        msg += f"❓ **Кто я? Где я? Что я? ({len(self.maybe)}):**\n" + ("\n".join(self.maybe.values()) if self.maybe else "—")
+        msg += f"❌ **Не приду ({len(self.not_going)}):**\n" + ("\n".join(self.not_going.values()) if self.not_going else "—")
         return msg
 
     async def handle_click(self, interaction, target_dict):
         uid, name = interaction.user.id, interaction.user.display_name
-        for d in [self.going, self.not_going, self.maybe]: d.pop(uid, None)
+        for d in [self.going, self.not_going]: d.pop(uid, None)
         target_dict[uid] = name
         await interaction.response.edit_message(content=self.make_content(), view=self)
 
     @discord.ui.button(label="Приду", style=discord.ButtonStyle.success)
-    async def confirm(self, interaction, button): await self.handle_click(interaction, self.going)
+    async def confirm(self, interaction, button): 
+        await self.handle_click(interaction, self.going)
 
     @discord.ui.button(label="Не приду", style=discord.ButtonStyle.danger)
-    async def decline(self, interaction, button): await self.handle_click(interaction, self.not_going)
-
-    @discord.ui.button(label="Возможно", style=discord.ButtonStyle.secondary)
-    async def maybe_btn(self, interaction, button): await self.handle_click(interaction, self.maybe)
+    async def decline(self, interaction, button): 
+        await self.handle_click(interaction, self.not_going)
 
 @bot.tree.command(name="опрос", description="Создать опрос")
 @app_commands.describe(дата="Дата и время")
