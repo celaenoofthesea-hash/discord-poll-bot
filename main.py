@@ -43,7 +43,7 @@ class PollView(discord.ui.View):
         msg = f"📅 **Событие назначено на: {self.date}**\n\n"
         msg += f"✅ **Приду ({len(self.going)}):**\n" + ("\n".join(self.going.values()) if self.going else "—") + "\n\n"
         msg += f"❌ **Не приду ({len(self.not_going)}):**\n" + ("\n".join(self.not_going.values()) if self.not_going else "—") + "\n\n"
-        msg += f"❓ **Возможно ({len(self.maybe)}):**\n" + ("\n".join(self.maybe.values()) if self.maybe else "—")
+        msg += f"❓ **Кто я? Где я? Что я? ({len(self.maybe)}):**\n" + ("\n".join(self.maybe.values()) if self.maybe else "—")
         return msg
 
     async def handle_click(self, interaction, target_dict):
