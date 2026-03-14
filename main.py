@@ -1,6 +1,23 @@
 import discord
 from discord import app_commands
 from discord.ext import commands
+from flask import Flask
+from threading import Thread
+import os
+
+app = Flask('')
+
+@app.route('/')
+def home():
+    return "I'm alive"
+
+def run():
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host='0.0.0.0', port=port)
+
+def keep_alive():
+    t = Thread(target=run)
+    t.start()
 
 TOKEN = "MTQ4MTM1ODIyNDk5MjIzOTY1Ng.G02tqq.hJudsG3Rcm_pSdtE2usik6JJr68oHrlnHsA4qI"
 
@@ -70,4 +87,5 @@ async def опрос(ctx, *, date):
     view = PollView(date)
     await ctx.send(view.make_content(), view=view)
 
+keep_alive()
 bot.run(TOKEN)
