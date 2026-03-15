@@ -45,29 +45,38 @@ class PollView(discord.ui.View):
         return msg
 
     async def handle_click(self, interaction, target_dict):
+        await interaction.response.defer_update()
+        
         uid, name = interaction.user.id, interaction.user.display_name
-        for d in [self.going, self.not_going]: d.pop(uid, None)
+        for d in [self.going, self.not_going]:
+            d.pop(uid, None)
         target_dict[uid] = name
-        await interaction.response.edit_message(content=self.make_content(), view=self)
+        
+        # Используем edit_original_response, так как мы сделали defer_update
+        await interaction.edit_original_response(content=self.make_content(), view=self)
 
     @discord.ui.button(label="Приду", style=discord.ButtonStyle.success)
-    async def confirm(self, interaction, button): 
+    async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.handle_click(interaction, self.going)
 
     @discord.ui.button(label="Не приду", style=discord.ButtonStyle.danger)
-    async def decline(self, interaction, button): 
+    async def decline(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.handle_click(interaction, self.not_going)
 
 @bot.tree.command(name="опрос", description="Создать опрос")
 @app_commands.describe(дата="Дата и время")
 async def slash_poll(interaction: discord.Interaction, дата: str):
-    await interaction.response.send_message(PollView(дата).make_content(), view=PollView(дата))
+    view = PollView(дата)
+    await interaction.response.send_message(view.make_content(), view=view)
 
 @bot.command()
 async def опрос(ctx, *, date):
-    try: await ctx.message.delete()
-    except: pass
-    await ctx.send(PollView(date).make_content(), view=PollView(date))
+    try:
+        await ctx.message.delete()
+    except:
+        pass
+    view = PollView(date)
+    await ctx.send(view.make_content(), view=view)
 
 keep_alive()
 bot.run(TOKEN)
