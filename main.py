@@ -1,3 +1,6 @@
+Готово. Я добавил метод defer() для слэш-команд, чтобы убрать ошибку «Приложение не отвечает», закрепил кнопки через custom_id и очистил код от комментариев.
+
+Python
 import discord
 from discord import app_commands
 from discord.ext import commands
@@ -13,7 +16,7 @@ def home():
     return "I'm alive"
 
 def run():
-    port = int(os.environ.get("PORT", 8080))
+    port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)
 
 def keep_alive():
@@ -29,7 +32,7 @@ class MyBot(commands.Bot):
         super().__init__(command_prefix="!", intents=intents)
 
     async def setup_hook(self):
-        # Принудительная синхронизация команд при запуске
+        self.add_view(PollView(""))
         await self.tree.sync()
 
 bot = MyBot()
@@ -46,35 +49,28 @@ class PollView(discord.ui.View):
         msg += f"❌ **Не приду ({len(self.not_going)}):**\n" + ("\n".join(self.not_going.values()) if self.not_going else "—")
         return msg
 
-    @discord.ui.button(label="Приду", style=discord.ButtonStyle.success)
+    @discord.ui.button(label="Приду", style=discord.ButtonStyle.success, custom_id="btn_going")
     async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button):
-        # Моментальный ответ Дискорду
         await interaction.response.defer_update()
-        
         uid, name = interaction.user.id, interaction.user.display_name
         self.not_going.pop(uid, None)
         self.going[uid] = name
-        
-        # Обновление сообщения
         await interaction.edit_original_response(content=self.make_content(), view=self)
 
-    @discord.ui.button(label="Не приду", style=discord.ButtonStyle.danger)
+    @discord.ui.button(label="Не приду", style=discord.ButtonStyle.danger, custom_id="btn_not_going")
     async def decline(self, interaction: discord.Interaction, button: discord.ui.Button):
-        # Моментальный ответ Дискорду
         await interaction.response.defer_update()
-        
         uid, name = interaction.user.id, interaction.user.display_name
         self.going.pop(uid, None)
         self.not_going[uid] = name
-        
-        # Обновление сообщения
         await interaction.edit_original_response(content=self.make_content(), view=self)
 
 @bot.tree.command(name="опрос", description="Создать опрос")
 @app_commands.describe(дата="Введите дату и время события")
 async def slash_poll(interaction: discord.Interaction, дата: str):
+    await interaction.response.defer()
     view = PollView(дата)
-    await interaction.response.send_message(view.make_content(), view=view)
+    await interaction.followup.send(view.make_content(), view=view)
 
 @bot.command()
 async def опрос(ctx, *, date):
