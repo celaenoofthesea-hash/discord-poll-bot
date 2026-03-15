@@ -1,6 +1,3 @@
-Готово. Я добавил метод defer() для слэш-команд, чтобы убрать ошибку «Приложение не отвечает», закрепил кнопки через custom_id и очистил код от комментариев.
-
-Python
 import discord
 from discord import app_commands
 from discord.ext import commands
